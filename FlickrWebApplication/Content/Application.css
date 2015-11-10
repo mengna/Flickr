@@ -1,0 +1,143 @@
+.fadein,
+.fadeout {
+  -webkit-transition:all cubic-bezier(0.250, 0.460, 0.450, 0.940) 1.5s;
+  -moz-transition:all cubic-bezier(0.250, 0.460, 0.450, 0.940) 1.5s;
+  -o-transition:all cubic-bezier(0.250, 0.460, 0.450, 0.940) 1.5s;
+  transition:all cubic-bezier(0.250, 0.460, 0.450, 0.940) 1.5s;
+}
+
+.fadein.ng-hide-remove,
+.fadeout.ng-hide-add.ng-hide-add-active {
+  opacity: 0;
+  display: block !important;
+}
+
+.fadeout.ng-hide-add,
+.fadein.ng-hide-remove.ng-hide-remove-active {
+  opacity: 1;
+  display: block !important;
+}
+
+.padding-top 
+{ 
+    padding-top: 70px; 
+}
+
+.modal-link
+{
+    cursor: pointer;
+}
+
+.img-wrapper
+{
+    position: relative;
+    overflow: hidden;
+    padding-bottom: 100%;
+    margin-top: 20px; 
+}
+
+.img-width {
+    width: 100%;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin: auto;
+}
+
+.img-height {
+    height: 100%;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin: auto;
+}
+
+.text-on-image
+{
+    display: none;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    color: white;
+    padding: 5px;
+    background-color: grey;
+    opacity: 0.8;
+}
+
+.img-wrapper a:hover + .text-on-image
+{
+    display: block;
+}
+
+/*Custmon Modal*/
+.custom-modal 
+{
+    height: 100%;
+    overflow: auto;
+} 
+
+.custom-modal-dialog
+{
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    margin: 0;
+}
+
+.custom-modal-content 
+{
+    height: 100%;
+} 
+
+.custom-modal-body
+{
+    height: 100%;
+}
+
+.custom-carousel
+{
+    height: 100%;
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
+}
+
+.modal-image-wrapper 
+{
+    position:absolute;
+    width:100%;
+    height:100%;
+    padding: 15px;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin: auto;
+}
+
+.modal-image-wrapper  > img
+{
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin: auto;
+    max-height:100%;
+    max-width:100%;
+}
+/*End of Custmon Modal*/
+
+.bold-text 
+{
+    font-weight: bold;
+}
+.text-color-green 
+{
+    color: green;
+}
