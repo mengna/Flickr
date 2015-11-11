@@ -1,6 +1,7 @@
 ﻿app.controller('FlickrHomeController', ['$scope', '$timeout', '$q', 'flickrImageServices', function ($scope, $timeout, $q, flickrImageServices) {
 
     var currSearchText = '';
+    var isLoadingMore = false; // A flag to prevent triggering loading more multiple times by the infinite scroll plugin
 
     // Controller initialization
     $scope.initializeController = function () {
@@ -153,8 +154,14 @@
     // This method returns a promise and will return the actual number of images are loaded from the flickr server when promise is resolved
     $scope.loadMore = function (leastNumImages) {
         var currNumImagesLoaded = 0;
-
         var deferred = $q.defer();
+
+        if (isLoadingMore) {
+            deferred.resolve(0);
+            return deferred.promise;
+        }
+
+        isLoadingMore = true;
 
         function loadNextPage() {
             $scope.currPage++;
@@ -162,13 +169,16 @@
                 function (numImageLoaded) {
                     currNumImagesLoaded += numImageLoaded;
 
-                    if (currNumImagesLoaded >= leastNumImages || $scope.currPage >= $scope.totalPage)
+                    if (currNumImagesLoaded >= leastNumImages || $scope.currPage >= $scope.totalPage) {
                         deferred.resolve(currNumImagesLoaded);
+                        isLoadingMore = false;
+                    }
                     else
                         loadNextPage();
                 },
                 function (response) {
                     deferred.reject(response);
+                    isLoadingMore = false;
                 }
             );
         }
