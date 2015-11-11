@@ -9,22 +9,3 @@ app.config(['$routeProvider', '$routeProvider',
           redirectTo: '/'
       });
   }]);
-
-/*
-app.config(['$stateProvider', '$urlRouterProvider',
-  function ($stateProvider, $urlRouterProvider) {
-      $stateProvider.state("Flickr", {
-          url: "/Flickr",
-          templateUrl: "/Components/FlickrImage/FlickrHome.html"
-      }).
-      state("Flickr.ImageDetail", {
-          url: "/child",
-          views: {
-              "@": {
-                  templateUrl: "/Components/FlickrImage/FlickrDetailImage.html"
-              }
-          }
-      });
-
-      $urlRouterProvider.otherwise("/Flickr");
-}]);*/

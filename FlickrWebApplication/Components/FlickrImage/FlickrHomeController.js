@@ -1,22 +1,31 @@
-﻿app.controller('FlickrHomeController', ['$scope', '$timeout', 'flickrImageServices', function ($scope, $timeout, flickrImageServices) {
+﻿app.controller('FlickrHomeController', ['$scope', '$timeout', '$q', 'flickrImageServices', function ($scope, $timeout, $q, flickrImageServices) {
 
-    var currPage = 1;
-    var totalPage = 1;
+    var currSearchText = '';
 
     // Controller initialization
     $scope.initializeController = function () {
-        $scope.totalPhotos = 1;
+
+        $scope.currPage = 0;
+        $scope.totalPage = 9999; // some large number, will get value from the API
+        $scope.searchText = '';
         $scope.imgs = [];
         $scope.loading = false;
         $scope.selectedType = 'public';
-        $scope.filterText = '';
-        $scope.isInfniteScrollDisabled = false;
         $scope.selectedImage = {};
         $scope.selectedLabel = '';
         $scope.selectedSource = '';
         $scope.isShowError = false;
-        $scope.getPublicPhotos(currPage);
+
+        $scope.loadMore(20); // Load at least 20 pages from the flickr server
     };
+
+    $scope.search = function () {
+        $scope.currPage = 0;
+        currSearchText = $scope.searchText; // update current search text
+        $scope.imgs = [];
+
+        $scope.loadMore(20); // Load at least 20 pages from the flickr server based on the curret search text
+    }
 
     // Filtering based on image type - bind to filtering in ng-repeat
     $scope.filterImageType = function (img) {
@@ -35,35 +44,42 @@
     };
 
     // Get public photos
+    // This method returns a promise and the success callback will return number of image added when promise is resolved
     $scope.getPublicPhotos = function (page) {
         $scope.loading = true;
-        $scope.isInfniteScrollDisabled = true;
-        return flickrImageServices.getPublicPhotos(page, $scope.getPublicPhotosCompleted, $scope.getPublicPhotosError);
-    };
 
-    // flickrImageServices.getPublicPhotos method success callback
-    $scope.getPublicPhotosCompleted = function (response) {
-        $scope.loading = false;
+        var deferred = $q.defer();
+        flickrImageServices.getPublicPhotos(page,
+            function (response) { // success callback
+                $scope.loading = false;
 
-        if (response.stat == 'ok') {
-            totalPage = response.photos.pages;
-            $scope.totalPhotos = response.photos.total;
-            for (var i = 0; i < response.photos.photo.length; i++)
-                $scope.imgs.push($scope.createImage(response.photos.photo[i]));
+                if (response.stat == 'ok') {
+                    var numImagesAdded = 0;
+                    $scope.totalPage = response.photos.pages;
+                    for (var i = 0; i < response.photos.photo.length; i++) {
+                        if (response.photos.photo[i].title.toLowerCase().indexOf(currSearchText.toLowerCase()) > -1) {
+                            $scope.imgs.push($scope.createImage(response.photos.photo[i]));
+                            numImagesAdded++;
+                        }
+                    }
 
-        }
-        else {
-            $scope.displayError();
-        }
+                    deferred.resolve(numImagesAdded);
+                }
+                else {
+                    $scope.displayError();
+                    deferred.reject(response);
+                }
 
-        $scope.isInfniteScrollDisabled = false;
-    };
-    
-    // flickrImageServices.getPublicPhotos method error callback
-    $scope.getPublicPhotosError = function (response) {
-        $scope.loading = false;
-        $scope.isInfniteScrollDisabled = false;
-        $scope.displayError();
+
+            },
+            function (response) { // error callback
+                $scope.loading = false;
+                $scope.displayError();
+                deferred.reject(response);
+            }
+        );
+
+        return deferred.promise;
     };
 
     // Ths method is triggered when click on a particular image. It will get all the available sizes of the selected image from flickr server.
@@ -73,11 +89,11 @@
         $scope.selectedImage.index = index;
         $scope.selectedImage.title = img.title;
 
-        return flickrImageServices.getSizes(img.id, $scope.getImageSizesCompleted, $scope.getImageSizesError);
+        return flickrImageServices.getSizes(img.id, getImageSizesCompleted, getImageSizesError);
     };
 
     // flickrImageServices.getSizes method success callback
-    $scope.getImageSizesCompleted = function (response) {
+    function getImageSizesCompleted(response) {
         if (response.stat == 'ok') {
             var isSet = false;
             $scope.selectedImage.sizes = [];
@@ -107,7 +123,7 @@
     };
 
     // flickrImageServices.getSizes method error callback
-    $scope.getImageSizesError = function (response) {
+    function getImageSizesError(response) {
         $scope.displayError();
     };
 
@@ -133,14 +149,33 @@
     };
 
     // Load more images from flickr server
-    $scope.loadMore = function () {
-        if (currPage < totalPage)
-        {
-            currPage++;
-            return $scope.getPublicPhotos(currPage);
+    // The parameter 'leastNumImages' indicates the least of numbers of images should be loaded or load till the last page
+    // This method returns a promise and will return the actual number of images are loaded from the flickr server when promise is resolved
+    $scope.loadMore = function (leastNumImages) {
+        var currNumImagesLoaded = 0;
+
+        var deferred = $q.defer();
+
+        function loadNextPage() {
+            $scope.currPage++;
+            $scope.getPublicPhotos($scope.currPage).then(
+                function (numImageLoaded) {
+                    currNumImagesLoaded += numImageLoaded;
+
+                    if (currNumImagesLoaded >= leastNumImages || $scope.currPage >= $scope.totalPage)
+                        deferred.resolve(currNumImagesLoaded);
+                    else
+                        loadNextPage();
+                },
+                function (response) {
+                    deferred.reject(response);
+                }
+            );
         }
 
-        return null;
+        loadNextPage();
+
+        return deferred.promise;
     };
 
     // Handling prev and next when viewing image in modal
@@ -149,21 +184,23 @@
             return;
 
         var index = -1;
-        
+
         if (prev && $scope.selectedImage.index > 0)
             index = --$scope.selectedImage.index;
-        else if (!prev && $scope.selectedImage.index < $scope.totalPhotos - 1)
+        else if (!prev && ($scope.selectedImage.index < $scope.imgs.length - 1 || $scope.currPage < $scope.totalPage))
             index = ++$scope.selectedImage.index;
 
         if (index >= 0) {
             // If it's already at the end, load more photos from flickr server
             if (index >= $scope.imgs.length) {
-                var promise = $scope.loadMore();
-                if (promise) {
-                    promise.success(function () {
+
+                // Try to load at least 20 images from the flickr server
+                $scope.loadMore(20).success(function (numImagesLoaded) {
+
+                    if (numImagesLoaded > 0)
                         $scope.selectImage($scope.imgs[index], index);
-                    });
-                }
+
+                });
             }
             else
                 $scope.selectImage($scope.imgs[index], index);
