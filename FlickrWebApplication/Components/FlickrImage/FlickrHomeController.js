@@ -205,7 +205,7 @@
             if (index >= $scope.imgs.length) {
 
                 // Try to load at least 20 images from the flickr server
-                $scope.loadMore(20).success(function (numImagesLoaded) {
+                $scope.loadMore(20).then(function (numImagesLoaded) {
 
                     if (numImagesLoaded > 0)
                         $scope.selectImage($scope.imgs[index], index);
