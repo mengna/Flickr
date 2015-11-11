@@ -69,7 +69,8 @@
                     <h4 class="modal-title" ng-bind="selectedImage.title" />
 
                     <div class="dropdown">
-                        Current Size:<span class="bold-text text-color-green">{{ selectedLabel }}</span>
+                        <span class="bold-text">Current Size: </span>
+                        <span class="bold-text text-color-green">{{ selectedLabel }}</span>
 
                         <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">
                             Select Size
@@ -83,7 +84,7 @@
                     </div>
                 </div>
 
-                <div class="modal-body custom-modal-body">
+                <div class="modal-body">
                     <div id="modal-carousel" class="carousel custom-carousel">
                         <div class="carousel-inner modal-image-wrapper ">
                             <img ng-src="{{ selectedSource }}" class="center-block" />
